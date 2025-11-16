@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X } from 'lucide-react';
 
 const Note = () => {
@@ -6,7 +6,16 @@ const Note = () => {
     const [title,setTitle] = useState('');
     const [details,setDetails] = useState('');
 
-    const [task,setTask] = useState([]);
+    // Load notes from localStorage on component mount
+    const [task,setTask] = useState(() => {
+        const savedNotes = localStorage.getItem('notes');
+        return savedNotes ? JSON.parse(savedNotes) : [];
+    });
+
+    // Save notes to localStorage whenever task array changes
+    useEffect(() => {
+        localStorage.setItem('notes', JSON.stringify(task));
+    }, [task]);
 
     const submitNote = (e) => {
         console.log({title,details});
@@ -14,7 +23,7 @@ const Note = () => {
         const copytask = [...task]
         copytask.push({title,details})
         setTask(copytask)
-
+        
         e.preventDefault();
         setTitle('');
         setDetails('');
@@ -70,8 +79,7 @@ const Note = () => {
           >
             Add Note
           </button>
-        </div>
-               
+        </div>     
       </form>
       <h1 className="text-lg sm:text-xl font-bold text-center bg-orange-300 rounded text-black p-2 mx-3 sm:mx-4">Recent Notes</h1>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 p-3 sm:p-6 lg:p-10">
