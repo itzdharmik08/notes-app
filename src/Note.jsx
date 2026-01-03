@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from "react";
-import { X } from 'lucide-react';
+import { X, Edit } from 'lucide-react';
 
 const Note = () => {
 
   const [title, setTitle] = useState('');
   const [details, setDetails] = useState('');
   const [error, setError] = useState('');
+  const [editingIndex, setEditingIndex] = useState(null);
 
   // Load notes from localStorage on component mount
   const [task, setTask] = useState(() => {
@@ -33,11 +34,29 @@ const Note = () => {
     console.log({ title, details });
 
     const copytask = [...task]
-    copytask.push({ title, details })
+
+    if (editingIndex !== null) {
+      // Update existing note
+      copytask[editingIndex] = { title, details };
+      setEditingIndex(null);
+    } else {
+      // Add new note
+      copytask.push({ title, details })
+    }
+
     setTask(copytask)
 
     setTitle('');
     setDetails('');
+  };
+
+  const editNote = (id) => {
+    setTitle(task[id].title);
+    setDetails(task[id].details);
+    setEditingIndex(id);
+    setError('');
+    // Scroll to top to show the form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const deleteNote = (id) => {
@@ -45,6 +64,15 @@ const Note = () => {
 
     copytask.splice(id, 1)
     setTask(copytask)
+
+    // Reset editing state if the note being edited is deleted
+    if (editingIndex === id) {
+      setEditingIndex(null);
+      setTitle('');
+      setDetails('');
+    } else if (editingIndex > id) {
+      setEditingIndex(editingIndex - 1);
+    }
   }
 
   return (
@@ -91,7 +119,7 @@ const Note = () => {
               submitNote(e);
             }}
           >
-            Add Note
+            {editingIndex !== null ? 'Update Note' : 'Add Note'}
           </button>
         </div>
       </form>
@@ -102,6 +130,9 @@ const Note = () => {
             <h2 onClick={() => {
               deleteNote(id)
             }} className="absolute bg-red-500 hover:bg-red-600 transition-colors rounded-full cursor-pointer font-xs top-2 sm:top-5 p-1.5 right-2 sm:right-5"><X size={14} color="#ffffff" strokeWidth={1.75} /></h2>
+            <h2 onClick={() => {
+              editNote(id)
+            }} className="absolute bg-blue-500 hover:bg-blue-600 transition-colors rounded-full cursor-pointer font-xs top-2 sm:top-5 p-1.5 right-10 sm:right-14"><Edit size={14} color="#ffffff" strokeWidth={1.75} /></h2>
             <h3 className="font-bold text-base sm:text-lg md:text-xl mt-1">{elem.title}</h3>
             <p className="mt-1 sm:mt-2 text-gray-500 flex-wrap break-words leading-tight text-xs sm:text-sm md:text-base">{elem.details}</p>
           </div>
